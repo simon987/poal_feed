@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  scraper:
+    image: simon987/poal_feed
+    restart: always
+    environment:
+      - "PF_REDIS_HOST="
+      - "PF_RPS=1"
