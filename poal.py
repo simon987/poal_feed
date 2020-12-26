@@ -1,10 +1,13 @@
 import json
+import os
 from json import JSONDecodeError
 from urllib.parse import urljoin
 
 from post_process import get_links_from_body
 from state import PoalState
 from util import Web, logger
+
+PF_MAX_PAGE = os.environ.get("PF_MAX_PAGE", 9999999)
 
 
 class PoalHelper:
@@ -74,6 +77,8 @@ class PoalHelper:
                 page = 1
             else:
                 page = int(r.url.split("/")[-1])
+            if page + 1 > PF_MAX_PAGE:
+                return posts, None
             return posts, self.posts_url(board, page=page + 1)
         return posts, None
 

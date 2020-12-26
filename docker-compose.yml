@@ -7,3 +7,4 @@ services:
     environment:
       - "PF_REDIS_HOST="
       - "PF_RPS=1"
+      - "PF_MAX_PAGE=300"

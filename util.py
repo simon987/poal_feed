@@ -28,12 +28,15 @@ class Web:
                 kwargs["headers"]["User-Agent"] = UA
             else:
                 kwargs["headers"] = {"User-Agent": UA}
-            retries = 3
+            retries = 8
 
             while retries > 0:
                 retries -= 1
                 try:
-                    return self.session.get(url, **kwargs)
+                    r =  self.session.get(url, **kwargs)
+                    if r.status_code == 500:
+                        raise Exception("Server error")
+                    return r
                 except KeyboardInterrupt as e:
                     raise e
                 except Exception as e:
