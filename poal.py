@@ -7,7 +7,7 @@ from post_process import get_links_from_body
 from state import PoalState
 from util import Web, logger
 
-PF_MAX_PAGE = os.environ.get("PF_MAX_PAGE", 9999999)
+PF_MAX_PAGE = int(os.environ.get("PF_MAX_PAGE", 9999999))
 
 
 class PoalHelper:
