@@ -3,17 +3,18 @@ import os
 from json import JSONDecodeError
 from urllib.parse import urljoin
 
+from hexlib.env import get_web
+from hexlib.log import logger
+
 from post_process import get_links_from_body
 from state import PoalState
-from util import Web, logger
 
 PF_MAX_PAGE = int(os.environ.get("PF_MAX_PAGE", 9999999))
 
 
 class PoalHelper:
 
-    def __init__(self, url, rps, boards):
-        self.rps = rps
+    def __init__(self, url, boards):
         self._boards = boards
         self._url = url
 
@@ -107,7 +108,7 @@ class PoalScanner:
     def __init__(self, state: PoalState, helper: PoalHelper):
         self._state = state
         self._helper = helper
-        self._web = Web(rps=helper.rps)
+        self._web = get_web()
 
     def _posts(self, board):
         r = self._web.get(self._helper.posts_url(board))

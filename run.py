@@ -1,36 +1,18 @@
 import json
-import os
-import traceback
 from queue import Queue
 from threading import Thread
 
-import redis
+from hexlib.concurrency import queue_iter
+from hexlib.env import get_redis
 
 from poal import PoalScanner, PoalHelper
 from post_process import post_process
 from state import PoalState
-from util import logger
-
-REDIS_HOST = os.environ.get("PF_REDIS_HOST", "localhost")
-REDIS_PORT = os.environ.get("PF_REDIS_PORT", 6379)
-PF_PUBLISH = os.environ.get("PF_PUBLISH", False)
-PF_RPS = os.environ.get("PF_RPS", 1)
-
-ARC_LISTS = os.environ.get("PF_ARC_LISTS", "arc").split(",")
 
 
 def publish_worker(queue: Queue, helper):
-    while True:
-        try:
-            item, board = queue.get()
-            if item is None:
-                break
-            publish(item, board, helper)
-
-        except Exception as e:
-            logger.error(str(e) + ": " + traceback.format_exc())
-        finally:
-            queue.task_done()
+    for item, board in queue_iter(queue):
+        publish(item, board, helper)
 
 
 def once(func):
@@ -50,10 +32,7 @@ def publish(item, board, helper):
     routing_key = "%s.%s" % (item_type, board)
 
     message = json.dumps(item, separators=(',', ':'), ensure_ascii=False, sort_keys=True)
-    if PF_PUBLISH:
-        rdb.publish("poal." + routing_key, message)
-    for arc in ARC_LISTS:
-        rdb.lpush(arc + ".poal." + routing_key, message)
+    rdb.lpush("arc.poal." + routing_key, message)
 
 
 HELPER = PoalHelper(
@@ -61,20 +40,18 @@ HELPER = PoalHelper(
         "all",
         # TODO: Are there hidden boards that do not show up in /all ?
     ),
-    rps=PF_RPS,
     url="https://poal.co"
 )
 
 if __name__ == "__main__":
 
-    state = PoalState("poal", REDIS_HOST, REDIS_PORT)
-    rdb = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+    state = PoalState("poal")
+    rdb = get_redis()
 
     publish_q = Queue()
-    for _ in range(3):
-        publish_thread = Thread(target=publish_worker, args=(publish_q, HELPER))
-        publish_thread.setDaemon(True)
-        publish_thread.start()
+    publish_thread = Thread(target=publish_worker, args=(publish_q, HELPER))
+    publish_thread.setDaemon(True)
+    publish_thread.start()
 
     s = PoalScanner(state, HELPER)
     while True:
@@ -83,6 +60,5 @@ if __name__ == "__main__":
                 publish_q.put((item, board))
         except KeyboardInterrupt as e:
             print("cleanup..")
-            for _ in range(3):
-                publish_q.put((None, None))
+            publish_q.put((None, None))
             break

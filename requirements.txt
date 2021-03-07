@@ -1,4 +1,4 @@
 requests
 urllib3
-git+git://github.com/simon987/hexlib.git
 redis
+git+git://github.com/simon987/hexlib.git

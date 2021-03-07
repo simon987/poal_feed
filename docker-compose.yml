@@ -5,6 +5,7 @@ services:
     image: simon987/poal_feed
     restart: always
     environment:
-      - "PF_REDIS_HOST="
-      - "PF_RPS=1"
+      - "REDIS_HOST="
+      - "RPS=1"
+      - "USER_AGENT=firefox"
       - "PF_MAX_PAGE=300"

@@ -2,10 +2,10 @@ from hexlib.db import VolatileState, VolatileBooleanState
 
 
 class PoalState:
-    def __init__(self, prefix, host, port):
-        self._posts = VolatileState(prefix, host=host, port=port)
-        self._comments = VolatileBooleanState(prefix, host=host, port=port)
-        self._users = VolatileBooleanState(prefix, host=host, port=port)
+    def __init__(self, prefix):
+        self._posts = VolatileState(prefix)
+        self._comments = VolatileBooleanState(prefix)
+        self._users = VolatileBooleanState(prefix)
 
     def has_visited(self, item_id):
         return self._comments["comments"][item_id]
