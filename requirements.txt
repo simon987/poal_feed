@@ -1,4 +1,4 @@
 requests
-urllib3
 redis
 git+git://github.com/simon987/hexlib.git
+bs4
