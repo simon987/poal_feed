@@ -67,6 +67,8 @@ class PoalScanner:
             yield comment
 
     def all_items(self):
+        not_found_in_a_row = 0
+
         for pid in range(1, 500_000):
             if self._state.has_visited(pid):
                 continue
@@ -74,8 +76,17 @@ class PoalScanner:
 
             r = self._web.get(url)
             if r.status_code == 404:
-                # Assume that we reached the end (?) for now
-                return
+                not_found_in_a_row += 1
+
+                if not_found_in_a_row > 10:
+                    break
+
+                if self._state.has_visited(pid + 1):
+                    self._state.mark_visited(pid)
+
+                continue
+
+            not_found_in_a_row = 0
 
             if r.status_code == 406:
                 # " This sub is disabled You're not allowed to see this stuff"
